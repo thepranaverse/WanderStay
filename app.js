@@ -1,7 +1,7 @@
 if (process.env.NODE_ENV != "production") {
   require("dotenv").config();
 }
-
+const helmet = require("helmet");
 const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
@@ -15,12 +15,22 @@ const flash = require("connect-flash");
 const passport = require("passport");
 const LocalStrategy = require("passport-local");
 const User = require("./Models/user.js");
-const port = 8080;
+const PORT = process.env.PORT || 8080; // Render provides PORT
 
 // using express routes to give structture to the code
 const listingsRouter = require("./routes/listings.js");
 const reviewsRouter = require("./routes/review.js");
 const userRouter = require("./routes/user.js");
+
+// Add SECURITY MIDDLEWARE (right after express() initialization)
+app.use(helmet());
+app.use((req, res, next) => {
+  res.setHeader("Content-Security-Policy", "default-src 'self'");
+  if (req.headers['x-forwarded-proto'] === 'http' && process.env.NODE_ENV === 'production') {
+    return res.redirect(301, `https://${req.headers.host}${req.url}`);
+  }
+  next();
+});
 
 // connectig mongo
 const dbUrl = process.env.ATLASDB_URL;
@@ -66,6 +76,8 @@ const sessionOptions = {
     expires: Date.now() + 7 * 24 * 60 * 60 * 1000, // 7 days in milisecond from curr date
     maxAge: 7 * 24 * 60 * 60 * 1000,
     httpOnly: true,
+    secure: process.env.NODE_ENV === "production", // HTTPS only in production
+    sameSite: "lax",
   },
 };
 
