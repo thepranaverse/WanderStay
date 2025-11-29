@@ -9,17 +9,19 @@ module.exports.createReview = async (req, res) => {
   const newReview = new Review({
     rating,
     comment,
-    author: req.user._id, // Set author here instead
+    author: req.user._id,
   });
 
-  listing.reviews.push(newReview);
   await newReview.save();
-  // $push: {
-  //   reviews: newReview._id;
-  // }
-  await listing.save();
-  req.flash("success", "Review Submitted!");
 
+  // Use findByIdAndUpdate to avoid full validation
+  await Listing.findByIdAndUpdate(
+    req.params.id,
+    { $push: { reviews: newReview._id } },
+    { new: true, runValidators: false } // Skip validation
+  );
+
+  req.flash("success", "Review Submitted!");
   res.redirect(`/listings/${listing._id}`);
 };
 

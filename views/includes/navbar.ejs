@@ -7,17 +7,22 @@
     background-color: #fe424d;
     color: #fff;
   }
-  .btn-search i{
+  .btn-search i {
     display: inline;
     margin-right: 0.5rem;
-  } 
+  }
 </style>
 
 <nav class="navbar navbar-expand-md bg-body-light border-bottom sticky-top">
   <div class="container-fluid">
-    <a class="navbar-brand" href="/listings"
-      ><i class="fa-solid fa-compass"></i
-    ></a>
+    <div class="d-flex align-items-center ms-4 gap-2">
+      <a class="navbar-brand m-0 p-0" href="/listings">
+        <i class="fa-solid fa-compass"></i>
+      </a>
+
+      <a class="nav-link m-0 p-0" href="/listings"><b>WanderStay</b></a>
+    </div>
+
     <button
       class="navbar-toggler"
       type="button"
@@ -26,11 +31,8 @@
     >
       <span class="navbar-toggler-icon"></span>
     </button>
-    <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-      <div class="navbar-nav">
-        <a class="nav-link" href="/listings">Explore</a>
-      </div>
 
+    <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
       <div class="navbar-nav ms-auto">
         <form class="d-flex" role="search">
           <input
@@ -45,7 +47,14 @@
       </div>
 
       <div class="navbar-nav ms-auto">
-        <a class="nav-link" href="/listings/new">Airbnb your home</a>
+        <!-- Add right margin -->
+        <a
+          class="nav-link border border-dark rounded me-3"
+          href="/listings/new"
+        >
+          Rent Out Your Home
+        </a>
+
         <% if(!currUser){ %>
         <a class="nav-link" href="/signup"><b>SignUp</b></a>
         <a class="nav-link" href="/login"><b>Login</b></a>

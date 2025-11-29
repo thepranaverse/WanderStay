@@ -70,8 +70,8 @@ module.exports.edit = async (req, res) => {
   let { id } = req.params;
   const list = await Listing.findById(id);
   if (!list) {
-    req.flash("error", "Listing you requested for dose not Exists!");
-    res.redirect("/listings");
+    req.flash("error", "Listing you requested for does not Exist!");
+    return res.redirect("/listings"); // ← ADD return HERE!
   }
   res.render("listings/edit", { list });
 };

@@ -1,43 +1,49 @@
+// index.js (updated)
+
 const mongoose = require("mongoose");
 const initdata = require("./data.js");
 const listings = require("../Models/listing");
-const { ObjectId } = require('mongodb'); // Add at the top
+require("dotenv").config({ path: "../.env" });
 
-main()
-  .then(() => {
-    console.log("connected to DB");
-    initDB();
-    updateListing(); // Call the update function here
-  })
-  .catch((err) => {
-    console.log(err);
-  });
+// Mapbox Geocoding
+const mbxGeocoding = require("@mapbox/mapbox-sdk/services/geocoding");
+const geocodingClient = mbxGeocoding({ accessToken: process.env.MAP_TOKEN });
 
 async function main() {
-  await mongoose.connect("mongodb://127.0.0.1:27017/wanderlust");
+  await mongoose.connect(process.env.ATLASDB_URL);
+  console.log("Connected to DB");
+  await initDB();
 }
 
-const initDB = async () => {
-  await listings.deleteMany({});
-  initdata.data = initdata.data.map((obj) => ({
-    ...obj,
-    owner: new mongoose.Types.ObjectId("684bd26da9706ed5260d6b02"), // Use mongoose's ObjectId
-  }));
-  await listings.insertMany(initdata.data);
-  console.log("data was init");
-};
+main().catch((err) => console.log(err));
 
-const updateListing = async () => {
-  await listings.updateOne(
-    { title: "Cozy Beachfront Cottage" },
-    {
-      $set: {
-        image: {
-          filename: "listingimage",
-          url: "https://images.unsplash.com/photo-1552733407-5d5c46c3bb3b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=60",
-        },
-      },
+const initDB = async () => {
+  try {
+    await listings.deleteMany({});
+    console.log("Old data deleted!");
+
+    for (let item of initdata.data) {
+      // Geocode each listing (location)
+      const geoData = await geocodingClient
+        .forwardGeocode({
+          query: item.location,
+          limit: 1,
+        })
+        .send();
+
+      // Create new listing with geometry
+      const listing = new listings({
+        ...item,
+        owner: new mongoose.Types.ObjectId("684bd26da9706ed5260d6b02"),
+        geometry: geoData.body.features[0].geometry, // << FIXED
+      });
+
+      await listing.save();
+      console.log(`Inserted: ${item.title}`);
     }
-  );
-  console.log("Listing updated");
+
+    console.log("Database initialized with geocoded listings!");
+  } catch (error) {
+    console.log("Error while initializing DB:", error);
+  }
 };
